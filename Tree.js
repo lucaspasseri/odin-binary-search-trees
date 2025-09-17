@@ -59,16 +59,11 @@ class Tree {
 
 	deleteItem(value) {
 		let currNode = this.root;
-		let prevNode;
+		let prevNode = null;
 
-		while (currNode === null || currNode.data !== value) {
-			if (value < currNode.data) {
-				prevNode = currNode;
-				currNode = currNode.left;
-			} else {
-				prevNode = currNode;
-				currNode = currNode.right;
-			}
+		while (currNode !== null && currNode.data !== value) {
+			prevNode = currNode;
+			currNode = value < currNode.data ? currNode.left : currNode.right;
 		}
 
 		if (currNode === null) return null;
@@ -111,50 +106,108 @@ class Tree {
 		currNode.data = newValue;
 		return innerReturn;
 	}
+
+	find(value) {
+		let currNode = this.root;
+
+		while (currNode !== null) {
+			if (currNode.data === value) return currNode;
+
+			if (currNode.data > value) {
+				currNode = currNode.left;
+			} else {
+				currNode = currNode.right;
+			}
+		}
+
+		return null;
+	}
+
+	levelOrderForEach(cb) {
+		if (cb === undefined) throw new Error();
+
+		if (this.root === null) return null;
+
+		let currNode = this.root;
+		const q = [];
+
+		q.push(currNode);
+
+		while (q.length > 0) {
+			currNode = q.shift();
+			cb(currNode);
+			if (currNode.left !== null) {
+				q.push(currNode.left);
+			}
+			if (currNode.right !== null) {
+				q.push(currNode.right);
+			}
+		}
+	}
+
+	levelOrderForEachRec(cb) {
+		if (cb === undefined) throw new Error();
+
+		if (this.root === null) return null;
+		const q = [];
+
+		q.push(this.root);
+
+		function rec(q) {
+			if (q.length === 0) return;
+
+			const currNode = q.shift();
+			cb(currNode);
+
+			if (currNode.left !== null) {
+				q.push(currNode.left);
+			}
+
+			if (currNode.right !== null) {
+				q.push(currNode.right);
+			}
+
+			rec(q);
+		}
+
+		rec(q);
+	}
+
+	inOrderForEach(cb) {
+		if (cb === undefined) throw new Error();
+
+		if (this.root === null) return null;
+		const s = [];
+		const visited = {};
+
+		s.push(this.root);
+		let currNode = this.root;
+
+		while (s.length > 0) {
+			if (currNode.left === null || visited[currNode.left.data]) {
+				visited[currNode.data] = true;
+				cb(currNode);
+				if (currNode.right === null) {
+					currNode = s.pop();
+				} else {
+					currNode = currNode.right;
+				}
+			} else {
+				s.push(currNode);
+				currNode = currNode.left;
+			}
+		}
+	}
+
+	inOrderForEachRec(cb) {
+		function rec(node) {
+			if (node === null) return;
+			rec(node.left);
+			cb(node);
+			rec(node.right);
+		}
+		rec(this.root);
+	}
 }
 
-const test = [1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324];
-
-const prettyPrint = (node, prefix = "", isLeft = true) => {
-	if (node === null) {
-		return;
-	}
-	if (node.right !== null) {
-		prettyPrint(node.right, `${prefix}${isLeft ? "│   " : "    "}`, false);
-	}
-	console.log(`${prefix}${isLeft ? "└── " : "┌── "}${node.data}`);
-	if (node.left !== null) {
-		prettyPrint(node.left, `${prefix}${isLeft ? "    " : "│   "}`, true);
-	}
-};
-
-const t = new Tree(test);
-
-prettyPrint(t.root);
-
-const t1 = new Tree([10, 20, 30]);
-prettyPrint(t1.root);
-
-const t2 = new Tree([1, 2, 3, 4, 5, 6, 7]);
-prettyPrint(t2.root);
-
-const t3 = new Tree([8, 9, 1, 2, 3, 4, 5, 6, 7]);
-prettyPrint(t3.root);
-
-t1.insert(40);
-
-prettyPrint(t1.root);
-t1.insert(50);
-prettyPrint(t1.root);
-
-t1.insert(25);
-t1.insert(28);
-t1.insert(27);
-t1.insert(29);
-prettyPrint(t1.root);
-
-t1.deleteItem(30);
-prettyPrint(t1.root);
-
-t1.deleteItem(29);
-prettyPrint(t1.root);
+module.exports = Tree;
